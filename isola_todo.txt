@@ -1,8 +1,8 @@
 isola todo:
-test with [-1]
+neighbors test
 remove neighbors outside the board
-remove neighbors without tiles
-remove neighbors with the other piece
-remove active tiles that aren't active
 remove active tiles with the current piece (after the move)
 remove active tiles with the other piece
+
+remove neighbors without tiles
+remove neighbors with the other piece

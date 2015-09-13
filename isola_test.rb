@@ -20,7 +20,35 @@ class IsolaTest < Test::Unit::TestCase
     assert_board_initialization(input_filename, board)    
   end
   
-
+  def test_board__active_tiles
+    input_filename = "input_3.txt"
+    board = make_board(input_filename)
+    
+    assert_equal [[0, 3], [1, 4], [5, 0], [5, 1], [5, 3], [5, 4], [5, 5], [5, 6]], 
+                 board.active_tiles
+  end
+  
+  def test_board__all_neighbors
+    input_filename = "input_3.txt"
+    board = make_board(input_filename)
+    
+    assert_equal [5, 2], board.current_position
+    neighbors = board.all_neighbors(board.current_position)
+    assert_equal [[4, 1], [4, 2], [4, 3], [5, 1], [5, 3], [6, 1], [6, 1], [6, 1]], neighbors
+  end
+  
+  def test_board__valid_neighbors
+    input_filename = "input_3.txt"
+    board = make_board(input_filename)
+    
+    assert_equal [5, 2], board.current_position
+    neighbors = board.valid_neighbors(board.current_position)
+    assert_equal [[5, 1], [5, 3]], neighbors    
+  end
+  
+  
+  private
+  
   def assert_board_initialization(input_filename, board)
     File.open(input_filename,"r") do |file|
       file.each_with_index do |line, index|
