@@ -24,8 +24,9 @@ class IsolaTest < Test::Unit::TestCase
     input_filename = "input_3.txt"
     board = make_board(input_filename)
     
-    assert_equal [[0, 3], [1, 4], [5, 0], [5, 1], [5, 3], [5, 4], [5, 5], [5, 6]], 
-                 board.active_tiles
+    assert_equal [5, 2], board.current_position
+    assert_equal [[0, 3], [1, 4], [5, 0], [5, 1], [5, 4], [5, 5], [5, 6], [5, 2]], 
+                 board.active_tiles([5, 3])
   end
   
   def test_board__all_neighbors
@@ -45,6 +46,14 @@ class IsolaTest < Test::Unit::TestCase
     neighbors = board.valid_neighbors(board.current_position)
     assert_equal [[5, 1], [5, 3]], neighbors    
   end
+  
+  def test_board__buggy_behavior
+    input_filename = "input_4.txt"
+    board = make_board(input_filename)
+    
+    assert_equal [0, 0], board.current_position
+    assert_equal [[1, 1]], board.valid_neighbors(board.current_position)
+  end    
   
   
   private

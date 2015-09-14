@@ -41,8 +41,8 @@ class Board
     neighbors << [position.first, position.last - 1]
     neighbors << [position.first, position.last + 1]
     neighbors << [position.first + 1, position.last - 1]
-    neighbors << [position.first + 1, position.last - 1]
-    neighbors << [position.first + 1, position.last - 1]
+    neighbors << [position.first + 1, position.last]
+    neighbors << [position.first + 1, position.last + 1]
     neighbors
   end
   
