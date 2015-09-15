@@ -1,5 +1,5 @@
 class Board
-  attr_accessor :board, :player_id
+  attr_accessor :board, :player_id, :opponent_id
   def initialize
     self.board = []
     7.times do
@@ -7,7 +7,21 @@ class Board
       self.board << row.scan(/-?\d+/).map(&:to_i)
     end
     self.player_id = gets.to_i
+    self.opponent_id = player_id == 1 ? 2 : 1
+    rank_squares
   end
+  
+  def rank_squares
+    return @ranks if @ranks
+    @ranks = {}
+    board.each_with_index do |row, index|
+      row.each_with_index do |column, jindex|
+        rank = valid_neighbors([index, jindex]).size
+        @ranks[[index, jindex]] = rank
+      end
+    end
+  end
+  
   
   def current_position(debug = false)
     return @current_position if @current_position
@@ -48,10 +62,16 @@ class Board
   
   def valid_neighbors(position)
     neighbors = all_neighbors(position)
-    neighbors.reject do |row, column|
-      row > 6 || row < 0 ||
-      column > 6 || column < 0 ||
-      board[row][column] != 0
+    neighbors.select do |row, column|
+      row <= 6 && row >= 0 &&
+      column <= 6 && column >= 0 &&
+      board[row][column] != -1
+    end
+  end
+  
+  def unnoccupied_neighbors(position)
+    valid_neighbors(position).reject do |row, column|
+      board[row][column] == opponent_id
     end
   end
   
@@ -59,14 +79,18 @@ end
 
 
 def move(board)
-  #get current position
-  # puts "current_position: #{board.current_position}"
-  #get the coordinates of the neighbors
+  # get current position
+  # get the coordinates o f the neighbors
+  unnoccupied_neighbors = board.unnoccupied_neighbors(board.current_position)
+  ranks = board.rank_squares
+  @ranked_neighbors = unnoccupied_neighbors.sort { |a, b| ranks[b] <=> ranks[a] }
+  @next_position = @ranked_neighbors.first
   #sort them in order of openness
   #move to the most open neighbor
-  @next_position = board.valid_neighbors(board.current_position).first
   puts "#{@next_position.first} #{@next_position.last}"
 end
+
+
 
 def remove_square(board)
   tiles = board.active_tiles(@next_position).shuffle
@@ -77,6 +101,8 @@ def run
   board = Board.new
   move(board)
   remove_square(board)
+  puts "ranks: #{board.rank_squares.inspect}"
+  puts "ranked_neighbors: #{@ranked_neighbors}"
 end
 
 run
