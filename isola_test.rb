@@ -35,7 +35,7 @@ class IsolaTest < Test::Unit::TestCase
     
     assert_equal [5, 2], board.current_position
     neighbors = board.all_neighbors(board.current_position)
-    assert_equal [[4, 1], [4, 2], [4, 3], [5, 1], [5, 3], [6, 1], [6, 1], [6, 1]], neighbors
+    assert_equal [[4, 1], [4, 2], [4, 3], [5, 1], [5, 3], [6, 1], [6, 2], [6, 3]], neighbors
   end
   
   def test_board__valid_neighbors
@@ -52,7 +52,7 @@ class IsolaTest < Test::Unit::TestCase
     board = make_board(input_filename)
     
     assert_equal [0, 0], board.current_position
-    assert_equal [[1, 1]], board.valid_neighbors(board.current_position)
+    assert_equal [[1, 1]], board.unnoccupied_neighbors(board.current_position)
   end    
   
   
