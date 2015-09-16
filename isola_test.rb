@@ -27,7 +27,7 @@ class IsolaTest < Test::Unit::TestCase
     assert_equal [6, 3], board.current_position
     assert_equal [[0, 1], [0, 2], [0, 4], [0, 5], 
                   [1, 1], [1, 2], [1, 3], [1, 4], [1, 5],
-                  [2, 1], [2, 2], [2, 3], [2, 4], [2, 5]
+                  [2, 1], [2, 2], [2, 3], [2, 4], [2, 5]],
                  board.removal_candidates([5, 3])
   end
   

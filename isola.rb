@@ -121,18 +121,17 @@ def move(board)
 end
 
 
-
 def remove_square(board)
-  tiles = board.removal_candidates(@next_position).shuffle
-  puts "#{tiles.first.first} #{tiles.first.last}"
+  ranks = board.rank_squares
+  removal_candidates = board.removal_candidates(@next_position).sort { |a, b| ranks[b] <=> ranks[a] }
+  top_candidates = removal_candidates.select { |position| ranks[position] == ranks[removal_candidates.first] }.shuffle
+  puts "#{top_candidates.first.first} #{top_candidates.first.last}"
 end
 
 def run
   board = Board.new
   move(board)
   remove_square(board)
-  puts "ranks: #{board.rank_squares.inspect}"
-  puts "ranked_neighbors: #{@ranked_neighbors}"
 end
 
-run
+# run
