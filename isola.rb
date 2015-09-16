@@ -14,39 +14,35 @@ class Board
   def rank_squares
     return @ranks if @ranks
     @ranks = {}
-    board.each_with_index do |row, index|
-      row.each_with_index do |column, jindex|
-        rank = valid_neighbors([index, jindex]).size
-        @ranks[[index, jindex]] = rank
-      end
+    each_square do |index, jindex|
+      rank = valid_neighbors([index, jindex]).size
+      @ranks[[index, jindex]] = rank
     end
   end
   
   
-  def current_position(debug = false)
+  def current_position
     return @current_position if @current_position
-    board.each_with_index do |row, index|
-      column = row.index player_id
-      puts "|current_position: index, column #{row.inspect}|" if debug
-      return @current_position = [index, column] if column
-    end
+    set_positions
+    return @current_position
   end
   
-  def active_tiles(next_position, debug = false)
-    active_tiles = []
-    board.each_with_index do |row, index|
-      row.each_with_index do |val, jindex|
-        puts "active_tiles #{index} #{jindex}: #{board[index][jindex]}" if debug
-        if val == 0 && next_position != [index, jindex]
-          puts "#{val} active" if debug
-          active_tiles << [index, jindex]
-        end
-      end
-    end
-    active_tiles << current_position
-    active_tiles
+  def opponent_position
+    return @opponent_position if @opponent_position
+    set_positions
+    return @opponent_position
   end
   
+  def set_positions(debug = false)
+    board.each_with_index do |row, index|
+      my_column = row.index player_id
+      @current_position = [index, my_column] if my_column
+      
+      opponent_column = row.index opponent_id
+      @opponent_position = [index, opponent_column] if opponent_column
+    end
+  end
+    
   def all_neighbors(position)
     neighbors = []
     neighbors << [position.first - 1, position.last - 1]
@@ -63,9 +59,7 @@ class Board
   def valid_neighbors(position)
     neighbors = all_neighbors(position)
     neighbors.select do |row, column|
-      row <= 6 && row >= 0 &&
-      column <= 6 && column >= 0 &&
-      board[row][column] != -1
+      valid_square(row, column)
     end
   end
   
@@ -74,6 +68,42 @@ class Board
       board[row][column] == opponent_id
     end
   end
+  
+  def removal_candidates(next_position, debug=false)
+    removal_candidates = []
+    each_square do |row, column|
+      if valid_square(row, column) &&
+        in_the_square_of_influence(row, column) &&
+        board[row][column] != opponent_id && 
+        next_position != [row, column]
+          puts "removal_candidates #{row} #{column}: #{board[row][column]}" if debug  
+          removal_candidates << [row, column]
+      end      
+    end
+    removal_candidates
+  end
+  
+  private
+  
+  def in_the_square_of_influence(row, column)
+    row >= (@opponent_position.first - 2) && row <= (@opponent_position.first + 2) &&
+    column >= (@opponent_position.last - 2) && column <= (@opponent_position.last + 2)
+  end
+  
+  def valid_square(row, column)
+    row <= 6 && row >= 0 &&
+    column <= 6 && column >= 0 &&
+    board[row][column] != -1
+  end
+  
+  def each_square(&block)
+    board.each_with_index do |row, index|
+      row.each_with_index do |val, jindex|
+        yield index, jindex
+      end
+    end    
+  end
+  
   
 end
 
@@ -93,7 +123,7 @@ end
 
 
 def remove_square(board)
-  tiles = board.active_tiles(@next_position).shuffle
+  tiles = board.removal_candidates(@next_position).shuffle
   puts "#{tiles.first.first} #{tiles.first.last}"
 end
 
