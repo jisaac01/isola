@@ -85,11 +85,7 @@ class Board
   private
   
   def in_the_square_of_influence(row, column)
-    if valid_neighbors(@opponent_position).size < 7
-      influence = 1
-    else
-      influence = 2
-    end
+    influence = 1
     
     row >= (@opponent_position.first - influence) && row <= (@opponent_position.first + influence) &&
     column >= (@opponent_position.last - influence) && column <= (@opponent_position.last + influence)
