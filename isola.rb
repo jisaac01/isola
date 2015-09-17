@@ -19,8 +19,7 @@ class Board
       @ranks[[index, jindex]] = rank
     end
   end
-  
-  
+    
   def current_position
     return @current_position if @current_position
     set_positions
@@ -134,4 +133,4 @@ def run
   remove_square(board)
 end
 
-# run
+run
