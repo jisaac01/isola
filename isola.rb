@@ -19,6 +19,14 @@ class Board
       @ranks[[index, jindex]] = rank
     end
   end
+  
+  def weight(position)
+    w = rank_squares[position]
+    valid_neighbors(position).each do |neighbor|
+      w += rank_squares[neighbor] / 8.0
+    end
+    w
+  end
     
   def current_position
     return @current_position if @current_position
@@ -123,9 +131,8 @@ end
 
 
 def remove_square(board)
-  ranks = board.rank_squares
-  removal_candidates = board.removal_candidates(@next_position).sort { |a, b| ranks[b] <=> ranks[a] }
-  top_candidates = removal_candidates.select { |position| ranks[position] == ranks[removal_candidates.first] }.shuffle
+  removal_candidates = board.removal_candidates(@next_position).sort { |a, b| board.weight(b) <=> board.weight(a) }
+  top_candidates = removal_candidates.select { |position| board.weight(position) == board.weight(removal_candidates.first) }.shuffle
   puts "#{top_candidates.first.first} #{top_candidates.first.last}"
 end
 
