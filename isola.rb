@@ -121,9 +121,8 @@ def move(board)
   # get current position
   # get the coordinates o f the neighbors
   unnoccupied_neighbors = board.unnoccupied_neighbors(board.current_position)
-  ranks = board.rank_squares
-  @ranked_neighbors = unnoccupied_neighbors.sort { |a, b| ranks[b] <=> ranks[a] }
-  @next_position = @ranked_neighbors.first
+  @ranked_neighbors = unnoccupied_neighbors.sort { |a, b| board.weight(b) <=> board.weight(a) }
+  @next_position = @ranked_neighbors.select { |position| board.weight(position) == board.weight(@ranked_neighbors.first) }.shuffle.first
   #sort them in order of openness
   #move to the most open neighbor
   puts "#{@next_position.first} #{@next_position.last}"
