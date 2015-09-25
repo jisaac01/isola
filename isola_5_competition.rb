@@ -1,61 +1,4 @@
-class Intelligence
-  
-  attr_accessor :game, :board
-  
-  def initialize(game)
-    self.game = game
-    self.board = game.board
-  end
-  
-  def move
-    # get current position
-    # get the coordinates o f the neighbors
-    unnoccupied_neighbors = board.unnoccupied_neighbors(board.current_position)
-    @ranked_neighbors = unnoccupied_neighbors.sort { |a, b| game.weight(b) <=> game.weight(a) }
-    @next_position = @ranked_neighbors.select { |position| game.weight(position) == game.weight(@ranked_neighbors.first) }.shuffle.first
-    #sort them in order of openness
-    #move to the most open neighbor
-    "#{@next_position.first} #{@next_position.last}"
-  end
-
-  def remove_square
-    removal_candidates = board.removal_candidates(@next_position).sort { |a, b| game.weight(b) <=> game.weight(a) }
-    top_candidates = removal_candidates.select { |position| game.weight(position) == game.weight(removal_candidates.first) }.shuffle
-    "#{top_candidates.first.first} #{top_candidates.first.last}"
-  end
-  
-end
-
-class Game
-  attr_accessor :board
-  
-  def initialize(board_state)
-    self.board = board_state
-    rank_squares
-  end
-
-  def weight(position)
-    w = rank_squares[position]
-    board.valid_neighbors(position).each do |neighbor|
-      w += rank_squares[neighbor] / 8.0
-    end
-    w
-  end
-    
-  def rank_squares
-    return @ranks if @ranks
-    @ranks = {}
-    board.each_square do |index, jindex|
-      rank = board.valid_neighbors([index, jindex]).size
-      @ranks[[index, jindex]] = rank
-    end
-    @ranks
-  end  
-  
-end
-
-# facts about the game board
-class BoardState
+class Board
   attr_accessor :board, :player_id, :opponent_id
   def initialize
     self.board = []
@@ -65,8 +8,26 @@ class BoardState
     end
     self.player_id = gets.to_i
     self.opponent_id = player_id == 1 ? 2 : 1
+    rank_squares
   end
-
+  
+  def rank_squares
+    return @ranks if @ranks
+    @ranks = {}
+    each_square do |index, jindex|
+      rank = valid_neighbors([index, jindex]).size
+      @ranks[[index, jindex]] = rank
+    end
+  end
+  
+  def weight(position)
+    w = rank_squares[position]
+    valid_neighbors(position).each do |neighbor|
+      w += rank_squares[neighbor] / 8.0
+    end
+    w
+  end
+    
   def current_position
     return @current_position if @current_position
     set_positions
@@ -89,7 +50,7 @@ class BoardState
     end
   end
     
-  def all_possible_neighbors(position)
+  def all_neighbors(position)
     neighbors = []
     neighbors << [position.first - 1, position.last - 1]
     neighbors << [position.first - 1, position.last]
@@ -103,7 +64,7 @@ class BoardState
   end
   
   def valid_neighbors(position)
-    neighbors = all_possible_neighbors(position)
+    neighbors = all_neighbors(position)
     neighbors.select do |row, column|
       valid_square(row, column)
     end
@@ -129,14 +90,6 @@ class BoardState
     removal_candidates
   end
   
-  def each_square(&block)
-    board.each_with_index do |row, index|
-      row.each_with_index do |val, jindex|
-        yield index, jindex
-      end
-    end    
-  end  
-  
   private
   
   def in_the_square_of_influence(row, column)
@@ -151,15 +104,41 @@ class BoardState
     column <= 6 && column >= 0 &&
     board[row][column] != -1
   end
+  
+  def each_square(&block)
+    board.each_with_index do |row, index|
+      row.each_with_index do |val, jindex|
+        yield index, jindex
+      end
+    end    
+  end
+  
+  
 end
 
 
+def move(board)
+  # get current position
+  # get the coordinates o f the neighbors
+  unnoccupied_neighbors = board.unnoccupied_neighbors(board.current_position)
+  @ranked_neighbors = unnoccupied_neighbors.sort { |a, b| board.weight(b) <=> board.weight(a) }
+  @next_position = @ranked_neighbors.select { |position| board.weight(position) == board.weight(@ranked_neighbors.first) }.shuffle.first
+  #sort them in order of openness
+  #move to the most open neighbor
+  puts "#{@next_position.first} #{@next_position.last}"
+end
+
+
+def remove_square(board)
+  removal_candidates = board.removal_candidates(@next_position).sort { |a, b| board.weight(b) <=> board.weight(a) }
+  top_candidates = removal_candidates.select { |position| board.weight(position) == board.weight(removal_candidates.first) }.shuffle
+  puts "#{top_candidates.first.first} #{top_candidates.first.last}"
+end
+
 def run
-  board = BoardState.new
-  game = Game.new(board)
-  ai = Intelligence.new(game)
-  puts ai.move
-  puts ai.remove_square
+  board = Board.new
+  move(board)
+  remove_square(board)
 end
 
 run

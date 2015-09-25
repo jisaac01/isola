@@ -2,4 +2,4 @@ Running isola for 1 move:
 ruby isola.rb < input_3.txt
 
 Running isola framework (for a whole game between 2 bots)
-ruby isola_framework.rb ../isola/isola.rb ../isola/isola_v4.r
+ruby isola_framework.rb isola.rb isola_v4.rb
