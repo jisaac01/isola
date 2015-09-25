@@ -46,23 +46,6 @@ class Board
     end
   end
   
-  #
-  # def opponent_position
-  #   return @opponent_position if @opponent_position
-  #   set_positions
-  #   return @opponent_position
-  # end
-  #
-  # def set_positions(debug = false)
-  #   board.each_with_index do |row, index|
-  #     my_column = row.index player_id
-  #     @current_position = [index, my_column] if my_column
-  #
-  #     opponent_column = row.index opponent_id
-  #     @opponent_position = [index, opponent_column] if opponent_column
-  #   end
-  # end
-  #
   def all_neighbors(position)
     neighbors = []
     neighbors << [position.first - 1, position.last - 1]
@@ -89,41 +72,12 @@ class Board
     end
   end
   
-  #
-  # def removal_candidates(next_position, debug=false)
-  #   removal_candidates = []
-  #   each_square do |row, column|
-  #     if valid_square(row, column) &&
-  #       in_the_square_of_influence(row, column) &&
-  #       board[row][column] != opponent_id &&
-  #       next_position != [row, column]
-  #         puts "removal_candidates #{row} #{column}: #{board[row][column]}" if debug
-  #         removal_candidates << [row, column]
-  #     end
-  #   end
-  #   removal_candidates
-  # end
-  #
-  # private
-  #
-  # def in_the_square_of_influence(row, column)
-  #   row >= (@opponent_position.first - 2) && row <= (@opponent_position.first + 2) &&
-  #   column >= (@opponent_position.last - 2) && column <= (@opponent_position.last + 2)
-  # end
-
   def valid_square(row, column)
     row <= 6 && row >= 0 &&
     column <= 6 && column >= 0 &&
     board[row][column] != -1
   end
 
-  # def each_square(&block)
-  #   board.each_with_index do |row, index|
-  #     row.each_with_index do |val, jindex|
-  #       yield index, jindex
-  #     end
-  #   end
-  # end
 end
 
 # create the initial board state
@@ -181,7 +135,7 @@ loop do
       board.board[remove.first][remove.last] = -1
   else
     puts "board.current_position(current_player) != remove: #{board.current_position(current_player) != remove}"
-    puts "board.valid_square(remove): #{board.valid_square(remove)}"
+    puts "board.valid_square(remove.first, remove.last): #{board.valid_square(remove.first, remove.last)}"
     puts "invalid remove #{remove}"
     break
   end  

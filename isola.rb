@@ -8,24 +8,31 @@ class Intelligence
   end
   
   def move
-    # get current position
-    # get the coordinates o f the neighbors
+    # get the coordinates of the neighbors
     unnoccupied_neighbors = board.unnoccupied_neighbors(board.current_position)
+    
+    # rank the neighbors by their weights
     @ranked_neighbors = unnoccupied_neighbors.sort { |a, b| game.weight(b) <=> game.weight(a) }
-    @next_position = @ranked_neighbors.select { |position| game.weight(position) == game.weight(@ranked_neighbors.first) }.shuffle.first
-    #sort them in order of openness
-    #move to the most open neighbor
-    "#{@next_position.first} #{@next_position.last}"
+    
+    # grab any neighbors with the highest weight and get one of them
+    next_position = @ranked_neighbors.select { |position| game.weight(position) == game.weight(@ranked_neighbors.first) }.shuffle.first
+
+    "#{next_position.first} #{next_position.last}"
   end
 
   def remove_square
-    removal_candidates = board.removal_candidates(@next_position).sort { |a, b| game.weight(b) <=> game.weight(a) }
+    # get candidate squares to remove
+    removal_candidates = game.removal_candidates(@next_position).sort { |a, b| game.weight(b) <=> game.weight(a) }
+    
+    # grab any of the candidates with the best chance and get one of them
     top_candidates = removal_candidates.select { |position| game.weight(position) == game.weight(removal_candidates.first) }.shuffle
+    
     "#{top_candidates.first.first} #{top_candidates.first.last}"
   end
   
 end
 
+# facts about the game state. Number of exits, relative strengths, pieces being considered for removal
 class Game
   attr_accessor :board
   
@@ -36,7 +43,7 @@ class Game
 
   def weight(position)
     w = rank_squares[position]
-    board.valid_neighbors(position).each do |neighbor|
+    board.neighbors_in_play(position).each do |neighbor|
       w += rank_squares[neighbor] / 8.0
     end
     w
@@ -46,15 +53,36 @@ class Game
     return @ranks if @ranks
     @ranks = {}
     board.each_square do |index, jindex|
-      rank = board.valid_neighbors([index, jindex]).size
+      rank = board.neighbors_in_play([index, jindex]).size
       @ranks[[index, jindex]] = rank
     end
     @ranks
   end  
   
+  def removal_candidates(next_position, debug=false)
+    removal_candidates = []
+    board.each_square do |row, column|
+      if board.square_in_play?(row, column) &&
+        in_the_square_of_influence(row, column) &&
+        board.board[row][column] != board.opponent_id && 
+        next_position != [row, column]
+          puts "removal_candidates #{row} #{column}: #{board[row][column]}" if debug  
+          removal_candidates << [row, column]
+      end      
+    end
+    removal_candidates
+  end
+  
+  def in_the_square_of_influence(row, column)
+    influence = 1
+    
+    row >= (board.opponent_position.first - influence) && row <= (board.opponent_position.first + influence) &&
+    column >= (board.opponent_position.last - influence) && column <= (board.opponent_position.last + influence)
+  end
+  
 end
 
-# facts about the game board
+# facts about the game board; positions, squares, etc
 class BoardState
   attr_accessor :board, :player_id, :opponent_id
   def initialize
@@ -102,31 +130,17 @@ class BoardState
     neighbors
   end
   
-  def valid_neighbors(position)
+  def neighbors_in_play(position)
     neighbors = all_possible_neighbors(position)
     neighbors.select do |row, column|
-      valid_square(row, column)
+      square_in_play?(row, column)
     end
   end
   
   def unnoccupied_neighbors(position)
-    valid_neighbors(position).reject do |row, column|
+    neighbors_in_play(position).reject do |row, column|
       board[row][column] == opponent_id
     end
-  end
-  
-  def removal_candidates(next_position, debug=false)
-    removal_candidates = []
-    each_square do |row, column|
-      if valid_square(row, column) &&
-        in_the_square_of_influence(row, column) &&
-        board[row][column] != opponent_id && 
-        next_position != [row, column]
-          puts "removal_candidates #{row} #{column}: #{board[row][column]}" if debug  
-          removal_candidates << [row, column]
-      end      
-    end
-    removal_candidates
   end
   
   def each_square(&block)
@@ -137,16 +151,7 @@ class BoardState
     end    
   end  
   
-  private
-  
-  def in_the_square_of_influence(row, column)
-    influence = 1
-    
-    row >= (@opponent_position.first - influence) && row <= (@opponent_position.first + influence) &&
-    column >= (@opponent_position.last - influence) && column <= (@opponent_position.last + influence)
-  end
-  
-  def valid_square(row, column)
+  def square_in_play?(row, column)
     row <= 6 && row >= 0 &&
     column <= 6 && column >= 0 &&
     board[row][column] != -1
